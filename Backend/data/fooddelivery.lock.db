@@ -1,0 +1,6 @@
+#FileLock
+#Sun Oct 26 22:49:32 IST 2025
+hostName=AsusTUF
+id=19a21884f6474259540b5a0db029e13c13960b1d0b7
+method=file
+server=192.168.1.3\:52229
