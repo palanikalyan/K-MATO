@@ -2,10 +2,9 @@
 FROM node:18-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
-COPY .angular .angular
-COPY src src
-COPY angular.json tsconfig.* ./
-RUN npm ci && npm run build -- --output-path=dist/kmato-app
+RUN npm ci
+COPY . .
+RUN npm run build -- --output-path=dist/kmato-app
 
 # Stage 2: serve with nginx
 FROM nginx:alpine
