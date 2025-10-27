@@ -1,0 +1,448 @@
+<div class="owner-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="logo">
+          <span>K</span>
+        </div>
+        <div class="header-info">
+          <h1>Restaurant Owner Dashboard</h1>
+          <p>Manage your restaurants on K'mato</p>
+        </div>
+      </div>
+      <button class="btn-logout" (click)="logout()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M7 19H3a2 2 0 01-2-2V3a2 2 0 012-2h4M14 15l5-5-5-5M19 10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon restaurants">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <h3>{{ myRestaurants.length }}</h3>
+        <p>My Restaurants</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+          <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+          <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+          <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <h3>{{ menuItems.length }}</h3>
+        <p>Menu Items</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon pending">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <h3>{{ getPendingRestaurantsCount() }}</h3>
+        <p>Pending Approval</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'restaurants'"
+      (click)="activeTab = 'restaurants'">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M2 8l8-6 8 6v10a2 2 0 01-2 2H4a2 2 0 01-2-2V8z" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      My Restaurants
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'menu'"
+      (click)="activeTab = 'menu'; loadMenuItems(selectedRestaurant?.id!)"
+      [disabled]="!selectedRestaurant || selectedRestaurant.approvalStatus !== 'APPROVED'">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <rect x="2" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="11" y="2" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="2" y="11" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="11" y="11" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      Menu Management
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'orders'"
+      (click)="activeTab = 'orders'; loadOrders()"
+      [disabled]="!selectedRestaurant || selectedRestaurant.approvalStatus !== 'APPROVED'">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      Orders
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Restaurants Tab -->
+    <div *ngIf="activeTab === 'restaurants'" class="restaurants-section">
+      <!-- Create New Restaurant Button -->
+      <div class="section-actions">
+        <button class="btn-primary" (click)="showCreateForm = true" *ngIf="!showCreateForm">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Create New Restaurant
+        </button>
+      </div>
+
+      <!-- Create Restaurant Form -->
+      <div class="section-card" *ngIf="showCreateForm">
+        <div class="section-header">
+          <h2>Submit New Restaurant</h2>
+          <button class="btn-close" (click)="showCreateForm = false; newRestaurant = getEmptyRestaurant()">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <form (ngSubmit)="submitRestaurant()" class="create-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Restaurant Name *</label>
+              <input type="text" [(ngModel)]="newRestaurant.name" name="name" required placeholder="e.g., Mama's Kitchen">
+            </div>
+            <div class="form-group">
+              <label>Cuisine Type *</label>
+              <input type="text" [(ngModel)]="newRestaurant.cuisineType" name="cuisineType" required placeholder="e.g., Italian, Chinese">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description *</label>
+            <textarea [(ngModel)]="newRestaurant.description" name="description" required rows="3" placeholder="Tell us about your restaurant..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Address *</label>
+              <input type="text" [(ngModel)]="newRestaurant.address" name="address" required placeholder="123 Main Street">
+            </div>
+            <div class="form-group">
+              <label>City *</label>
+              <input type="text" [(ngModel)]="newRestaurant.city" name="city" required placeholder="e.g., Mumbai">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Phone Number *</label>
+              <input type="tel" [(ngModel)]="newRestaurant.phoneNumber" name="phoneNumber" required placeholder="(555) 123-4567">
+            </div>
+            <div class="form-group">
+              <label>Opening Hours *</label>
+              <input type="text" [(ngModel)]="newRestaurant.openingHours" name="openingHours" required placeholder="9:00 AM - 10:00 PM">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="showCreateForm = false; newRestaurant = getEmptyRestaurant()">Cancel</button>
+            <button type="submit" class="btn-primary">Submit for Approval</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- My Restaurants List -->
+      <div class="section-card" *ngIf="myRestaurants.length > 0">
+        <div class="section-header">
+          <h2>My Restaurants ({{ myRestaurants.length }})</h2>
+        </div>
+        <div class="restaurants-grid">
+          <div class="restaurant-card" *ngFor="let restaurant of myRestaurants" 
+               [class.selected]="selectedRestaurant?.id === restaurant.id"
+               (click)="selectRestaurant(restaurant)">
+            <div class="restaurant-card-header">
+              <div class="restaurant-icon">{{ restaurant.name.charAt(0) }}</div>
+              <span class="status-badge" [ngClass]="restaurant.approvalStatus?.toLowerCase()">{{ restaurant.approvalStatus }}</span>
+            </div>
+            <h3>{{ restaurant.name }}</h3>
+            <p class="cuisine-type">{{ restaurant.cuisineType }}</p>
+            <p class="description">{{ restaurant.description }}</p>
+            <div class="restaurant-details">
+              <div class="detail-item">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M14 7s-1-4-6-4-6 4-6 4 1 4 6 4 6-4 6-4z" stroke="currentColor" stroke-width="1.5"/>
+                  <circle cx="8" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                {{ restaurant.address }}
+              </div>
+              <div class="detail-item">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M8 4v4l2 2" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+                {{ restaurant.openingHours }}
+              </div>
+            </div>
+            <div class="rejection-reason" *ngIf="restaurant.approvalStatus === 'REJECTED' && restaurant.rejectionReason">
+              <strong>Rejection Reason:</strong> {{ restaurant.rejectionReason }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="myRestaurants.length === 0 && !showCreateForm">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <path d="M10 30l30-20 30 20v35a5 5 0 01-5 5H15a5 5 0 01-5-5V30z" stroke="#cbd5e0" stroke-width="3"/>
+        </svg>
+        <h3>No Restaurants Yet</h3>
+        <p>Create your first restaurant to get started</p>
+        <button class="btn-primary" (click)="showCreateForm = true">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Create Restaurant
+        </button>
+      </div>
+    </div>
+
+    <!-- Menu Tab -->
+    <div *ngIf="activeTab === 'menu'" class="menu-section">
+      <div class="section-actions">
+        <button class="btn-primary" (click)="showMenuForm = true" *ngIf="!showMenuForm && selectedRestaurant">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Menu Item
+        </button>
+      </div>
+
+      <!-- Add Menu Item Form -->
+      <div class="section-card" *ngIf="showMenuForm">
+        <div class="section-header">
+          <h2>Add New Menu Item</h2>
+          <button class="btn-close" (click)="showMenuForm = false; newMenuItem = getEmptyMenuItem()">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <form (ngSubmit)="addMenuItem()" class="create-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Item Name *</label>
+              <input type="text" [(ngModel)]="newMenuItem.name" name="itemName" required placeholder="e.g., Margherita Pizza">
+            </div>
+            <div class="form-group">
+              <label>Category *</label>
+              <select [(ngModel)]="newMenuItem.category" name="category" required>
+                <option value="">Select a category</option>
+                <option value="APPETIZER">Appetizer</option>
+                <option value="MAIN_COURSE">Main Course</option>
+                <option value="DESSERT">Dessert</option>
+                <option value="BEVERAGE">Beverage</option>
+                <option value="SNACKS">Snacks</option>
+                <option value="BREAKFAST">Breakfast</option>
+                <option value="LUNCH">Lunch</option>
+                <option value="DINNER">Dinner</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description *</label>
+            <textarea [(ngModel)]="newMenuItem.description" name="itemDescription" required rows="2" placeholder="Describe the item..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Price ($) *</label>
+              <input type="number" [(ngModel)]="newMenuItem.price" name="price" required min="0" step="0.01" placeholder="12.99">
+            </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="newMenuItem.available" name="available">
+                <span>Available for order</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="showMenuForm = false; newMenuItem = getEmptyMenuItem()">Cancel</button>
+            <button type="submit" class="btn-primary">Add Item</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Menu Items List -->
+      <div class="section-card" *ngIf="menuItems.length > 0">
+        <div class="section-header">
+          <h2>Menu Items ({{ menuItems.length }})</h2>
+        </div>
+        <div class="menu-grid">
+          <div class="menu-item-card" *ngFor="let item of menuItems">
+            <div class="menu-item-header">
+              <h3>{{ item.name }}</h3>
+              <span class="price">${{ item.price.toFixed(2) }}</span>
+            </div>
+            <p class="category">{{ item.category }}</p>
+            <p class="description">{{ item.description }}</p>
+            <div class="menu-item-actions">
+              <label class="toggle-switch">
+                <input type="checkbox" [checked]="item.available" (change)="toggleMenuItemAvailability(item)">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">{{ item.available ? 'Available' : 'Unavailable' }}</span>
+              </label>
+              <button class="btn-icon delete" (click)="deleteMenuItem(item.id!)" title="Delete">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <path d="M2 4h14M6 4V3a1 1 0 011-1h4a1 1 0 011 1v1m2 0v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4h10z" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="menuItems.length === 0 && !showMenuForm && selectedRestaurant">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <rect x="10" y="10" width="25" height="25" rx="3" stroke="#cbd5e0" stroke-width="3"/>
+          <rect x="45" y="10" width="25" height="25" rx="3" stroke="#cbd5e0" stroke-width="3"/>
+          <rect x="10" y="45" width="25" height="25" rx="3" stroke="#cbd5e0" stroke-width="3"/>
+          <rect x="45" y="45" width="25" height="25" rx="3" stroke="#cbd5e0" stroke-width="3"/>
+        </svg>
+        <h3>No Menu Items</h3>
+        <p>Add your first menu item to get started</p>
+        <button class="btn-primary" (click)="showMenuForm = true">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Menu Item
+        </button>
+      </div>
+    </div>
+
+    <!-- Orders Tab -->
+    <div *ngIf="activeTab === 'orders'" class="orders-section">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Recent Orders ({{ orders.length }})</h2>
+          <button class="btn-secondary" (click)="loadOrders()">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M1 10c0-4.97 4.03-9 9-9s9 4.03 9 9-4.03 9-9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M10 5v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="orders-table" *ngIf="orders.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of orders">
+                <td><strong>#{{ order.id }}</strong></td>
+                <td>{{ order.customerName || 'Customer' }}</td>
+                <td>
+                  <div class="order-items">
+                    <span *ngFor="let item of order.items; let last = last">
+                      {{ item.quantity }}x {{ item.menuItemName }}<span *ngIf="!last">, </span>
+                    </span>
+                  </div>
+                </td>
+                <td><strong>${{ order.totalAmount?.toFixed(2) }}</strong></td>
+                <td>
+                  <span class="status-badge" [ngClass]="order.status?.toLowerCase()">
+                    {{ order.status }}
+                  </span>
+                </td>
+                <td>{{ order.createdAt | date:'short' }}</td>
+                <td>
+                  <div class="order-actions">
+                    <button 
+                      class="btn-action accept" 
+                      *ngIf="order.status === 'PENDING'"
+                      (click)="updateOrderStatus(order.id, 'CONFIRMED')"
+                      title="Accept Order">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M13 4L6 11L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                    <button 
+                      class="btn-action prepare" 
+                      *ngIf="order.status === 'CONFIRMED'"
+                      (click)="updateOrderStatus(order.id, 'PREPARING')"
+                      title="Start Preparing">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+                        <path d="M8 4v4l2 2" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                    </button>
+                    <button 
+                      class="btn-action ready" 
+                      *ngIf="order.status === 'PREPARING'"
+                      (click)="updateOrderStatus(order.id, 'READY_FOR_PICKUP')"
+                      title="Mark Ready">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M13 4L6 11L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      Ready
+                    </button>
+                    <button 
+                      class="btn-action cancel" 
+                      *ngIf="order.status === 'PENDING' || order.status === 'CONFIRMED'"
+                      (click)="updateOrderStatus(order.id, 'CANCELLED')"
+                      title="Cancel Order">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="orders.length === 0">
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+            <path d="M20 25L15 35v30a5 5 0 005 5h40a5 5 0 005-5V35l-5-10H20z" stroke="#cbd5e0" stroke-width="3"/>
+            <path d="M15 35h50" stroke="#cbd5e0" stroke-width="3"/>
+          </svg>
+          <h3>No Orders Yet</h3>
+          <p>Orders from customers will appear here</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

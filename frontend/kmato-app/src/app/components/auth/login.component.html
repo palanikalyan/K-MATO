@@ -1,0 +1,80 @@
+<div class="auth-page">
+  <div class="auth-container">
+    <!-- Login Form -->
+    <div class="auth-form-section">
+      <div class="auth-form-container">
+        <!-- Logo & Header -->
+        <div class="auth-header">
+          <div class="auth-logo">
+            <span>K</span>
+          </div>
+          <h2>Welcome Back</h2>
+          <p>Sign in to continue to K'mato</p>
+        </div>
+
+        <div class="error-alert" *ngIf="error">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 6v4M10 14v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span>{{ error }}</span>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" class="auth-form">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <div class="input-wrapper">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M3 4h14a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M18 5l-8 5-8-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <input 
+                type="email" 
+                id="email"
+                [(ngModel)]="email" 
+                name="email"
+                placeholder="Enter your email"
+                required
+                autocomplete="email">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrapper">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="4" y="8" width="12" height="9" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M7 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <input 
+                type="password" 
+                id="password"
+                [(ngModel)]="password" 
+                name="password"
+                placeholder="Enter your password"
+                required
+                autocomplete="current-password">
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <label class="checkbox-label">
+              <input type="checkbox" name="remember">
+              <span>Remember me</span>
+            </label>
+            <a href="#" class="link-text">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+            {{ loading ? 'Signing in...' : 'Sign In' }}
+          </button>
+        </form>
+
+        <div class="auth-switch">
+          <span>Don't have an account?</span>
+          <a routerLink="/register">Sign up</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

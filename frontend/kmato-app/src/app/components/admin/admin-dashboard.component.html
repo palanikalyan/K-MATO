@@ -1,0 +1,291 @@
+<div class="admin-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="logo">
+          <span>K</span>
+        </div>
+        <div class="header-info">
+          <h1>Admin Dashboard</h1>
+          <p>Manage your K'mato platform</p>
+        </div>
+      </div>
+      <button class="btn-logout" (click)="logout()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M7 19H3a2 2 0 01-2-2V3a2 2 0 012-2h4M14 15l5-5-5-5M19 10H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon users">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <h3>{{ stats.totalUsers }}</h3>
+        <p>Total Users</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon restaurants">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 22V12h6v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <h3>{{ stats.totalRestaurants }}</h3>
+        <p>Total Restaurants</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon orders">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6zM3 6h18M16 10a4 4 0 11-8 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <h3>{{ stats.totalOrders }}</h3>
+        <p>Total Orders</p>
+      </div>
+    </div>
+
+    <div class="stat-card highlight">
+      <div class="stat-icon pending">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="stat-info">
+        <h3>{{ stats.pendingApprovals }}</h3>
+        <p>Pending Approvals</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'restaurants'"
+      (click)="activeTab = 'restaurants'">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M2 8l8-6 8 6v10a2 2 0 01-2 2H4a2 2 0 01-2-2V8z" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      Restaurants
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'users'"
+      (click)="activeTab = 'users'">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      Users
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'orders'"
+      (click)="activeTab = 'orders'">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      Orders
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <!-- Restaurants Tab -->
+    <div *ngIf="activeTab === 'restaurants'" class="restaurants-section">
+      <!-- Pending Restaurants -->
+      <div class="section-card" *ngIf="pendingRestaurants.length > 0">
+        <div class="section-header">
+          <h2>
+            <span class="status-badge pending">{{ pendingRestaurants.length }}</span>
+            Pending Approval
+          </h2>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Restaurant Name</th>
+                <th>Owner</th>
+                <th>Address</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let restaurant of pendingRestaurants">
+                <td>
+                  <div class="restaurant-cell">
+                    <div class="restaurant-icon">{{ restaurant.name.charAt(0) }}</div>
+                    <div>
+                      <div class="restaurant-name">{{ restaurant.name }}</div>
+                      <div class="restaurant-desc">{{ restaurant.description }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ restaurant.ownerName || 'Owner #' + restaurant.ownerId }}</td>
+                <td>{{ restaurant.address }}</td>
+                <td>{{ restaurant.createdAt | date: 'short' }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button class="btn-action approve" (click)="approveRestaurant(restaurant.id)">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M13 4L6 11 3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      Approve
+                    </button>
+                    <button class="btn-action reject" (click)="rejectRestaurant(restaurant.id)">
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      Reject
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Approved Restaurants -->
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Approved Restaurants ({{ approvedRestaurants.length }})</h2>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Restaurant Name</th>
+                <th>Owner</th>
+                <th>Address</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let restaurant of approvedRestaurants">
+                <td>
+                  <div class="restaurant-cell">
+                    <div class="restaurant-icon">{{ restaurant.name.charAt(0) }}</div>
+                    <div>
+                      <div class="restaurant-name">{{ restaurant.name }}</div>
+                      <div class="restaurant-desc">{{ restaurant.description }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ restaurant.ownerName || 'Owner #' + restaurant.ownerId }}</td>
+                <td>{{ restaurant.address }}</td>
+                <td><span class="status-badge approved">Approved</span></td>
+                <td>
+                  <button class="btn-action delete" (click)="deleteRestaurant(restaurant.id)">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div *ngIf="activeTab === 'users'" class="users-section">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>All Users ({{ users.length }})</h2>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of users">
+                <td>{{ user.firstName }} {{ user.lastName }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone || 'N/A' }}</td>
+                <td>
+                  <select 
+                    class="role-select" 
+                    [value]="user.role" 
+                    (change)="updateUserRole(user.id, $any($event.target).value)">
+                    <option value="USER">User</option>
+                    <option value="RESTAURANT_OWNER">Restaurant Owner</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </td>
+                <td>
+                  <button class="btn-action delete" (click)="deleteUser(user.id)">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders Tab -->
+    <div *ngIf="activeTab === 'orders'" class="orders-section">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>All Orders ({{ orders.length }})</h2>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>User ID</th>
+                <th>Restaurant ID</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of orders">
+                <td>#{{ order.id }}</td>
+                <td>{{ order.userId }}</td>
+                <td>{{ order.restaurantId }}</td>
+                <td>${{ order.totalAmount.toFixed(2) }}</td>
+                <td><span class="status-badge" [ngClass]="order.status.toLowerCase()">{{ order.status }}</span></td>
+                <td>{{ order.createdAt | date: 'short' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
