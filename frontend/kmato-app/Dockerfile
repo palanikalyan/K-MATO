@@ -4,10 +4,10 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN npm run build -- --output-path=dist/kmato-app
+RUN npm run build --configuration production
 
 # Stage 2: serve with nginx
 FROM nginx:alpine
-COPY --from=build /app/dist/kmato-app /usr/share/nginx/html
+COPY --from=build /app/dist/kmato-app/browser /usr/share/nginx/html
 EXPOSE 80
-CMD ["/bin/sh","-c","nginx -g 'daemon off;' "]
+CMD ["nginx", "-g", "daemon off;"]
