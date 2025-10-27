@@ -1,0 +1,12 @@
+.idea/
+.vscode/
+node_modules/
+Backend/data/
+data/
+*.mv.db
+*.trace.db
+dist/
+*.log
+/.angular/cache
+frontend/kmato-app/node_modules/
+frontend/kmato-app/dist/
