@@ -11,14 +11,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-resource "aws_ecr_repository" "backend" {
-  name = "kmato-backend"
-}
-
-resource "aws_ecr_repository" "frontend" {
-  name = "kmato-frontend"
-}
-
 resource "aws_security_group" "kmato_sg" {
   name        = "kmato-sg"
   description = "Allow HTTP and SSH access"
@@ -82,11 +74,6 @@ resource "aws_iam_role" "ec2_role" {
   })
 }
 
-resource "aws_iam_role_policy_attachment" "ecr_readonly" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
 resource "aws_iam_role_policy_attachment" "ssm_core" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -98,46 +85,57 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 }
 
 resource "aws_instance" "kmato" {
-  ami                    = data.aws_ami.amazon_linux2.id
-  instance_type          = var.instance_type
-  vpc_security_group_ids = [aws_security_group.kmato_sg.id]
-  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
+  ami                         = data.aws_ami.amazon_linux2.id
+  instance_type               = var.instance_type
+  vpc_security_group_ids      = [aws_security_group.kmato_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
   associate_public_ip_address = true
 
   user_data = <<-EOF
               #!/bin/bash
+              set -e
+              
+              # Update and install Docker
               yum update -y
               amazon-linux-extras install docker -y
               service docker start
               usermod -a -G docker ec2-user
-              yum install -y aws-cli
-
-              REGION=${var.aws_region}
-              BACKEND_REPO=${aws_ecr_repository.backend.repository_url}
-              FRONTEND_REPO=${aws_ecr_repository.frontend.repository_url}
-
-              # wait for images to be pushed to ECR and then run them
-              for i in {1..60}; do
-                aws ecr get-login-password --region "$${REGION}" | docker login --username AWS --password-stdin ${aws_ecr_repository.backend.repository_url%/*}
-                if docker pull ${aws_ecr_repository.backend.repository_url}:latest; then
-                  break
-                fi
-                sleep 10
-              done
-
+              systemctl enable docker
+              
+              # Install Docker Compose
+              curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              chmod +x /usr/local/bin/docker-compose
+              
+              # Wait for Docker to be ready
+              sleep 10
+              
+              # Pull and run backend container from Docker Hub
+              docker pull ${var.docker_username}/kmato-backend:latest
               docker rm -f kmato-backend || true
-              docker run -d --name kmato-backend -p 8081:8081 ${aws_ecr_repository.backend.repository_url}:latest || true
-
-              for i in {1..60}; do
-                aws ecr get-login-password --region "$${REGION}" | docker login --username AWS --password-stdin ${aws_ecr_repository.frontend.repository_url%/*}
-                if docker pull ${aws_ecr_repository.frontend.repository_url}:latest; then
-                  break
-                fi
-                sleep 10
-              done
-
+              docker run -d \
+                --name kmato-backend \
+                --restart unless-stopped \
+                -p 8081:8081 \
+                -e JWT_SECRET="${var.jwt_secret}" \
+                -e SPRING_DATASOURCE_URL="${var.datasource_url}" \
+                -e SPRING_DATASOURCE_USERNAME="${var.datasource_username}" \
+                -e SPRING_DATASOURCE_PASSWORD="${var.datasource_password}" \
+                ${var.docker_username}/kmato-backend:latest
+              
+              # Pull and run frontend container from Docker Hub
+              docker pull ${var.docker_username}/kmato-frontend:latest
               docker rm -f kmato-frontend || true
-              docker run -d --name kmato-frontend -p 80:80 ${aws_ecr_repository.frontend.repository_url}:latest || true
+              docker run -d \
+                --name kmato-frontend \
+                --restart unless-stopped \
+                -p 80:80 \
+                ${var.docker_username}/kmato-frontend:latest
+              
+              # Log container status
+              echo "Backend container status:" >> /var/log/kmato-startup.log
+              docker ps -a | grep kmato-backend >> /var/log/kmato-startup.log
+              echo "Frontend container status:" >> /var/log/kmato-startup.log
+              docker ps -a | grep kmato-frontend >> /var/log/kmato-startup.log
               EOF
 
   tags = {
@@ -145,14 +143,17 @@ resource "aws_instance" "kmato" {
   }
 }
 
-output "ecr_backend_url" {
-  value = aws_ecr_repository.backend.repository_url
-}
-
-output "ecr_frontend_url" {
-  value = aws_ecr_repository.frontend.repository_url
-}
-
 output "ec2_public_ip" {
-  value = aws_instance.kmato.public_ip
+  value       = aws_instance.kmato.public_ip
+  description = "Public IP of the EC2 instance"
+}
+
+output "backend_url" {
+  value       = "http://${aws_instance.kmato.public_ip}:8081"
+  description = "Backend API URL"
+}
+
+output "frontend_url" {
+  value       = "http://${aws_instance.kmato.public_ip}"
+  description = "Frontend application URL"
 }

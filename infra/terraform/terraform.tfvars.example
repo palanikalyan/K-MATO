@@ -1,0 +1,15 @@
+# Terraform Variables Configuration
+# Copy this file to terraform.tfvars and update with your values
+
+# REQUIRED: Your Docker Hub username
+docker_username = "palanikalyan27"
+
+# AWS Configuration
+aws_region    = "us-east-1"
+instance_type = "t3.micro"
+
+# Application Configuration
+jwt_secret             = "your-secret-key-min-256-bits-change-this-in-production"
+datasource_url         = "jdbc:h2:file:./data/fooddelivery;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+datasource_username    = "sa"
+datasource_password    = ""
