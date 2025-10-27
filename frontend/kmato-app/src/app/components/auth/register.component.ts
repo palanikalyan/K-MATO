@@ -13,7 +13,7 @@ export class RegisterComponent {
   email = '';
   phone = '';
   password = '';
-  role = 'USER'; // Default role
+  role = 'CUSTOMER'; // Default role - matches backend enum
   error: string | null = null;
 
   constructor(private readonly api: ApiService, private readonly router: Router) {}
