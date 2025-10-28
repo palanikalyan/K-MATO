@@ -27,8 +27,7 @@ public class DataInitializer {
                 User admin = new User();
                 admin.setEmail("admin@kmato.com");
                 admin.setPassword(passwordEncoder.encode("Admin@123"));
-                admin.setFirstName("Admin");
-                admin.setLastName("User");
+                admin.setFullName("Admin User");
                 admin.setPhoneNumber("9999999999");
                 admin.setRole(Role.ADMIN);
                 admin.setIsActive(true);
@@ -47,8 +46,7 @@ public class DataInitializer {
                 User owner = new User();
                 owner.setEmail("owner@kmato.com");
                 owner.setPassword(passwordEncoder.encode("Owner@123"));
-                owner.setFirstName("Restaurant");
-                owner.setLastName("Owner");
+                owner.setFullName("Restaurant Owner");
                 owner.setPhoneNumber("8888888888");
                 owner.setRole(Role.RESTAURANT_OWNER);
                 owner.setIsActive(true);
@@ -64,8 +62,7 @@ public class DataInitializer {
                 User customer = new User();
                 customer.setEmail("customer@kmato.com");
                 customer.setPassword(passwordEncoder.encode("Customer@123"));
-                customer.setFirstName("John");
-                customer.setLastName("Doe");
+                customer.setFullName("John Doe");
                 customer.setPhoneNumber("7777777777");
                 customer.setRole(Role.CUSTOMER);
                 customer.setIsActive(true);
