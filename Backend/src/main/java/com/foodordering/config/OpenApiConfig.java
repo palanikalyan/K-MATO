@@ -13,21 +13,21 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-    final String securitySchemeName = "bearerAuth";
-    return new OpenAPI()
-        .components(new Components()
-            .addSecuritySchemes(securitySchemeName,
-                new SecurityScheme()
-                    .name(securitySchemeName)
-                    .type(SecurityScheme.Type.HTTP)
-                    .scheme("bearer")
-                    .bearerFormat("JWT")
-            ))
-        .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
-        .info(new Info()
-            .title("Food Ordering API")
-            .version("3.0")
-            .description("API for the Food Ordering Service"));
+        final String securitySchemeName = "bearerAuth";
+        return new OpenAPI()
+                .components(new Components()
+                        .addSecuritySchemes(securitySchemeName,
+                                new SecurityScheme()
+                                        .name(securitySchemeName)
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                        ))
+                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                .info(new Info()
+                        .title("Food Ordering API")
+                        .version("3.0")
+                        .description("API for the Food Ordering Service"));
     }
 
     // No GroupedOpenApi bean here to avoid runtime classpath issues with certain springdoc artifacts.
