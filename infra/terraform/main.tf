@@ -93,7 +93,10 @@ resource "aws_instance" "kmato" {
 
   user_data = <<-EOF
               #!/bin/bash
-              set -e
+              exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+              set -x
+              
+              echo "Starting deployment at $(date)"
               
               # Update and install Docker
               yum update -y
@@ -102,16 +105,15 @@ resource "aws_instance" "kmato" {
               usermod -a -G docker ec2-user
               systemctl enable docker
               
-              # Install Docker Compose
-              curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              chmod +x /usr/local/bin/docker-compose
-              
               # Wait for Docker to be ready
-              sleep 10
+              echo "Waiting for Docker to be ready..."
+              sleep 15
               
-              # Pull and run backend container from Docker Hub (using specific commit SHA)
-              docker pull ${var.docker_username}/kmato-backend:028eccfadd89edb2e3d5cc74a60ba24f5f8b8a48
+              # Pull and run backend container from Docker Hub
+              echo "Pulling backend image at $(date)"
+              docker pull ${var.docker_username}/kmato-backend:latest
               docker rm -f kmato-backend || true
+              echo "Starting backend container at $(date)"
               docker run -d \
                 --name kmato-backend \
                 --restart unless-stopped \
@@ -120,11 +122,13 @@ resource "aws_instance" "kmato" {
                 -e SPRING_DATASOURCE_URL="${var.datasource_url}" \
                 -e SPRING_DATASOURCE_USERNAME="${var.datasource_username}" \
                 -e SPRING_DATASOURCE_PASSWORD="${var.datasource_password}" \
-                ${var.docker_username}/kmato-backend:028eccfadd89edb2e3d5cc74a60ba24f5f8b8a48
+                ${var.docker_username}/kmato-backend:latest
               
-              # Pull and run frontend container from Docker Hub (using specific commit SHA)
-              docker pull ${var.docker_username}/kmato-frontend:028eccfadd89edb2e3d5cc74a60ba24f5f8b8a48
+              # Pull and run frontend container from Docker Hub
+              echo "Pulling frontend image at $(date)"
+              docker pull ${var.docker_username}/kmato-frontend:latest
               docker rm -f kmato-frontend || true
+              echo "Starting frontend container at $(date)"
               docker run -d \
                 --name kmato-frontend \
                 --restart unless-stopped \
@@ -132,10 +136,15 @@ resource "aws_instance" "kmato" {
                 ${var.docker_username}/kmato-frontend:latest
               
               # Log container status
-              echo "Backend container status:" >> /var/log/kmato-startup.log
-              docker ps -a | grep kmato-backend >> /var/log/kmato-startup.log
-              echo "Frontend container status:" >> /var/log/kmato-startup.log
-              docker ps -a | grep kmato-frontend >> /var/log/kmato-startup.log
+              echo "Deployment completed at $(date)"
+              echo "Container status:"
+              docker ps -a
+              
+              echo "Backend logs:"
+              docker logs kmato-backend --tail 50
+              
+              echo "Frontend logs:"
+              docker logs kmato-frontend --tail 50
               EOF
 
   tags = {
