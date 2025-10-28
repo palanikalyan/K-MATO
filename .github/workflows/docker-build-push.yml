@@ -1,5 +1,6 @@
 name: Build and Push to Docker Hub
 
+# Builds Docker images for backend and frontend, then pushes to Docker Hub
 on:
   push:
     branches:
