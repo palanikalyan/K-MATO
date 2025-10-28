@@ -109,8 +109,8 @@ resource "aws_instance" "kmato" {
               # Wait for Docker to be ready
               sleep 10
               
-              # Pull and run backend container from Docker Hub
-              docker pull ${var.docker_username}/kmato-backend:latest
+              # Pull and run backend container from Docker Hub (using specific commit SHA)
+              docker pull ${var.docker_username}/kmato-backend:028eccfadd89edb2e3d5cc74a60ba24f5f8b8a48
               docker rm -f kmato-backend || true
               docker run -d \
                 --name kmato-backend \
@@ -120,10 +120,10 @@ resource "aws_instance" "kmato" {
                 -e SPRING_DATASOURCE_URL="${var.datasource_url}" \
                 -e SPRING_DATASOURCE_USERNAME="${var.datasource_username}" \
                 -e SPRING_DATASOURCE_PASSWORD="${var.datasource_password}" \
-                ${var.docker_username}/kmato-backend:latest
+                ${var.docker_username}/kmato-backend:028eccfadd89edb2e3d5cc74a60ba24f5f8b8a48
               
-              # Pull and run frontend container from Docker Hub
-              docker pull ${var.docker_username}/kmato-frontend:latest
+              # Pull and run frontend container from Docker Hub (using specific commit SHA)
+              docker pull ${var.docker_username}/kmato-frontend:028eccfadd89edb2e3d5cc74a60ba24f5f8b8a48
               docker rm -f kmato-frontend || true
               docker run -d \
                 --name kmato-frontend \

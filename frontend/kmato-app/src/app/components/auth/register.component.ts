@@ -32,7 +32,7 @@ export class RegisterComponent {
       fullName,
       email: this.email,
       password: this.password,
-      phone: this.phone,
+      phoneNumber: this.phone, // Backend expects 'phoneNumber' not 'phone'
       role: this.role
     };
 

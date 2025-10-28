@@ -148,22 +148,11 @@ export class CheckoutComponent implements OnInit {
     this.api.createOrder(orderData).subscribe({
       next: (res: any) => {
         if (res.success && res.data) {
-          // Process payment
-          this.api.payForCurrentOrder({ 
-            method: this.paymentMethod, 
-            mockResult: 'SUCCESS' 
-          }).subscribe({
-            next: () => {
-              this.cart.clear();
-              this.placingOrder = false;
-              this.router.navigate(['/orders']);
-            },
-            error: (err) => {
-              console.error('Payment failed', err);
-              alert('Payment failed. Please try again.');
-              this.placingOrder = false;
-            }
-          });
+          // Order placed successfully - no payment processing needed
+          this.cart.clear();
+          this.placingOrder = false;
+          alert('Order placed successfully!');
+          this.router.navigate(['/orders']);
         } else {
           alert('Failed to create order');
           this.placingOrder = false;
