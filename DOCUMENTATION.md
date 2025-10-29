@@ -112,7 +112,7 @@ Access: Browse restaurants, place orders
 3. **Security**: Secure authentication, encrypted passwords, HTTPS
 4. **Availability**: 99.9% uptime
 5. **Maintainability**: Clean code, documentation, automated tests
-6. **Usability**: Intuitive UI, accessibility standards
+
 
 ### Technology Stack Selection
 
